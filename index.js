@@ -1,56 +1,31 @@
 const http = require('http');
-
-const token = process.env.TELEGRAM_BOT_TOKEN || '8957687602:AAFl5wxW1yjCInHWWD7iaZXvy2-ADZqSrzo';
+const token = process.env.TELEGRAM_BOT_TOKEN;
 const openaiKey = process.env.OPENAI_API_KEY;
 const PORT = process.env.PORT || 10000;
 
-// Servidor web obligatorio para que Render mantenga el servicio activo
-const server = http.createServer((req, res) => {
+http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('PepesiyoBot is running!\n');
-});
-
-server.listen(PORT, () => {
-  console.log(`🌍 Servidor web escuchando en el puerto ${PORT}`);
-});
+  res.end('Bot is running!');
+}).listen(PORT);
 
 let offset = 0;
-console.log('🤖 PepesiyoBot cloud nativo arrancado y escuchando mensajes...');
-
-async function pollTelegram() {
+async function poll() {
   try {
     const res = await fetch(`https://api.telegram.org/bot${token}/getUpdates?offset=${offset}&timeout=30`);
     const data = await res.json();
-
     if (data.ok && data.result) {
-      for (const update of data.result) {
-        offset = update.update_id + 1;
-        
-        if (update.message && update.message.text) {
-          const chatId = update.message.chat.id;
-          const text = update.message.text;
-          const userName = update.message.from.first_name || 'Amigo';
-
-          console.log(`Mensaje de ${userName}: ${text}`);
-
+      for (const u of data.result) {
+        offset = u.update_id + 1;
+        if (u.message?.text) {
+          const chatId = u.message.chat.id;
+          const text = u.message.text;
           const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${openaiKey}`
-            },
-            body: JSON.stringify({
-              model: 'gpt-4o',
-              messages: [
-                { role: 'system', content: 'Eres Pepe, un asistente amable y divertido.' },
-                { role: 'user', content: text }
-              ]
-            })
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
+            body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'system', content: 'Eres Pepe.' }, { role: 'user', content: text }] })
           });
-
           const aiData = await aiRes.json();
-          const reply = aiData.choices && aiData.choices[0] ? aiData.choices[0].message.content : '¡Hola! Recibido.';
-
+          const reply = aiData.choices?.[0]?.message?.content || '¡Hola!';
           await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -59,11 +34,7 @@ async function pollTelegram() {
         }
       }
     }
-  } catch (err) {
-    console.error('Error en polling:', err.message);
-  }
-
-  setTimeout(pollTelegram, 1000);
+  } catch (e) { console.error(e); }
+  setImmediate(poll);
 }
-
-pollTelegram();
+poll();
