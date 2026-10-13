@@ -1,8 +1,20 @@
+const http = require('http');
+
 const token = process.env.TELEGRAM_BOT_TOKEN || '8957687602:AAFl5wxW1yjCInHWWD7iaZXvy2-ADZqSrzo';
 const openaiKey = process.env.OPENAI_API_KEY;
+const PORT = process.env.PORT || 10000;
+
+// Servidor web obligatorio para que Render mantenga el servicio activo
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('PepesiyoBot is running!\n');
+});
+
+server.listen(PORT, () => {
+  console.log(`🌍 Servidor web escuchando en el puerto ${PORT}`);
+});
 
 let offset = 0;
-
 console.log('🤖 PepesiyoBot cloud nativo arrancado y escuchando mensajes...');
 
 async function pollTelegram() {
@@ -21,7 +33,6 @@ async function pollTelegram() {
 
           console.log(`Mensaje de ${userName}: ${text}`);
 
-          // Llamada a OpenAI
           const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -40,7 +51,6 @@ async function pollTelegram() {
           const aiData = await aiRes.json();
           const reply = aiData.choices && aiData.choices[0] ? aiData.choices[0].message.content : '¡Hola! Recibido.';
 
-          // Enviar respuesta a Telegram
           await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -53,7 +63,6 @@ async function pollTelegram() {
     console.error('Error en polling:', err.message);
   }
 
-  // Siguiente ciclo de escucha
   setTimeout(pollTelegram, 1000);
 }
 
