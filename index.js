@@ -1,5 +1,5 @@
 const http = require('http');
-const token = '8866264170:AAEiHZCkLC-4eALL4r3k7sZ4hS-OiOoUUNE';
+const token = process.env.TELEGRAM_BOT_TOKEN;
 const openaiKey = process.env.OPENAI_API_KEY;
 const PORT = process.env.PORT || 10000;
 
