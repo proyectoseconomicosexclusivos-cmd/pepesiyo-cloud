@@ -1,6 +1,6 @@
 const http = require('http');
-const token = process.env.TELEGRAM_BOT_TOKEN;
-const openaiKey = process.env.OPENAI_API_KEY;
+const token = '8957687602:AAFl5wxW1yjCInHWWD7iaZXvy2-ADZqSrzo';
+const openaiKey = 'TU_OPENAI_API_KEY';
 const PORT = process.env.PORT || 10000;
 
 http.createServer((req, res) => {
@@ -22,7 +22,7 @@ async function poll() {
           const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
-            body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'system', content: 'Eres Pepe.' }, { role: 'user', content: text }] })
+            body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'system', content: 'Eres Pepe, un asistente amable y divertido.' }, { role: 'user', content: text }] })
           });
           const aiData = await aiRes.json();
           const reply = aiData.choices?.[0]?.message?.content || '¡Hola!';
