@@ -1,6 +1,6 @@
 const http = require('http');
-const token = '8957687602:AAFl5wxW1yjCInHWWD7iaZXvy2-ADZqSrzo';
-const openaiKey = 'TU_OPENAI_API_KEY';
+const token = '8866264170:AAEiHZCkLC-4eALL4r3k7sZ4hS-OiOoUUNE';
+const openaiKey = process.env.OPENAI_API_KEY;
 const PORT = process.env.PORT || 10000;
 
 http.createServer((req, res) => {
