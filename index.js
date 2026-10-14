@@ -1,19 +1,21 @@
 const http = require('http');
-require('dotenv').config();
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const openaiKey = process.env.OPENAI_API_KEY;
 const PORT = process.env.PORT || 10000;
+
 
 if (!token || !openaiKey) {
   console.error('Faltan TELEGRAM_BOT_TOKEN u OPENAI_API_KEY.');
   process.exit(1);
 }
 
+
 http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('Bot is running!');
 }).listen(PORT);
+
 
 let offset = 0;
 async function poll() {
@@ -34,18 +36,3 @@ async function poll() {
           const aiData = await aiRes.json();
           if (!aiRes.ok) {
             console.error('OpenAI devolvió un error:', aiRes.status);
-          }
-          const reply = aiData.choices?.[0]?.message?.content || '¡Ups, no he podido pensar una respuesta!';
-          
-          await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: chatId, text: reply })
-          });
-        }
-      }
-    }
-  } catch (e) { console.error('Error en polling:', e); }
-  setImmediate(poll);
-}
-poll();
