@@ -1,7 +1,14 @@
 const http = require('http');
+require('dotenv').config();
+
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const openaiKey = process.env.OPENAI_API_KEY;
 const PORT = process.env.PORT || 10000;
+
+if (!token || !openaiKey) {
+  console.error('Faltan TELEGRAM_BOT_TOKEN u OPENAI_API_KEY.');
+  process.exit(1);
+}
 
 http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -22,10 +29,14 @@ async function poll() {
           const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
-            body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'system', content: 'Eres Pepe, un asistente amable y divertido.' }, { role: 'user', content: text }] })
+            body: JSON.stringify({ model: 'gpt-4o', messages: [{ role: 'system', content: 'Eres Pepe, un asistente amable, divertido y cercano.' }, { role: 'user', content: text }] })
           });
           const aiData = await aiRes.json();
-          const reply = aiData.choices?.[0]?.message?.content || '¡Hola!';
+          if (!aiRes.ok) {
+            console.error('OpenAI devolvió un error:', aiRes.status);
+          }
+          const reply = aiData.choices?.[0]?.message?.content || '¡Ups, no he podido pensar una respuesta!';
+          
           await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -34,7 +45,7 @@ async function poll() {
         }
       }
     }
-  } catch (e) { console.error(e); }
+  } catch (e) { console.error('Error en polling:', e); }
   setImmediate(poll);
 }
 poll();
